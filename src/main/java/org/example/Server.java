@@ -1,26 +1,33 @@
 package org.example;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Server {
     JFrame window =new JFrame();
 
     JPanel center = new JPanel();
+    Border border = BorderFactory.createLineBorder(Color.BLACK);
+    JPanel users = new JPanel();
+
     ServerSocket serverSocket = new ServerSocket(8080);
-    List<ClientHandler> clients;
+    List<ClientHandler> clients = new ArrayList<>();
 
     public Server() throws IOException {
     }
 
     class ClientHandler implements Runnable{
         String name;
-        Socket socket;
+        public Socket socket;
         DataInputStream in;
         DataOutputStream out;
 
@@ -67,6 +74,35 @@ public class Server {
 
     void pack(){
         window.setLayout(new BorderLayout());
+        window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                System.exit(0);
+            }
+        });
+
+        center.setLayout(new BoxLayout(center,BoxLayout.Y_AXIS));
+        JLabel title = new JLabel("服务器端在线人数");
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        center.add(title);
+        users.setPreferredSize(new Dimension());
+        users.setBorder(border);
+        users.setLayout(new GridLayout());
+        for (ClientHandler client : clients){
+            String message = String.valueOf(client.socket.getInetAddress());
+            users.add(new JLabel(message));
+        }
+        center.add(users);
+
+        int number = clients.size();
+        JLabel numberLabel = new JLabel("当前有"+ number +"个客户在线");
+        numberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        center.add(numberLabel);
+
+        window.add(center);
+        window.pack();
+        window.setVisible(true);
 
 
     }

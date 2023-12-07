@@ -24,6 +24,8 @@ public class Client {
     Integer index = 0;
 
     JPanel right = new JPanel();
+
+//    记录当前在线客户
     DefaultListModel<User> model = new DefaultListModel<>();
     JList<User> userList = new JList<>(model);
 
@@ -41,7 +43,7 @@ public class Client {
         // 客户端主窗口
         window.setLayout(new BorderLayout());
         window.addWindowListener(new WindowAdapter() {
-            @Override
+            @Override  //关闭
             public void windowClosing(WindowEvent e) {
                 System.exit(0);
             }
@@ -53,6 +55,7 @@ public class Client {
         header.add(name);
         header.add(new JLabel("port:"));
         login.addActionListener(e -> {
+            //点击登陆按钮事件
             try {
                 socket = new Socket("127.0.0.1", 8080);
             } catch (Exception ex) {
@@ -73,18 +76,6 @@ public class Client {
         for (int i = 1; i <= 100; i++) {
             getUser("user" + i, i);
         }
-        userList.addListSelectionListener(e -> {
-            User select = userList.getSelectedValue();
-            Integer i = userList.getAnchorSelectionIndex();
-            System.out.println(select);
-            System.out.println(i);
-
-            index = i;
-            center.remove(0);
-            center.add(messages.get(index));
-            window.revalidate();
-            window.repaint();
-        });
         right.setPreferredSize(new Dimension(50, 90));
         right.add(userList);
         window.add(right, BorderLayout.EAST);
