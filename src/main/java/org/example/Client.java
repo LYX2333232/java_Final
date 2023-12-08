@@ -1,14 +1,14 @@
 package org.example;
 
-import org.example.pojo.User;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Client {
     Socket socket;
@@ -19,23 +19,46 @@ public class Client {
     JButton login = new JButton("登陆");
 
     JPanel center = new JPanel();
-    List<JTextArea> messages = new ArrayList<>(
-            List.of(new JTextArea[] { new JTextArea(10, 50), new JTextArea(10, 50) }));
-    Integer index = 0;
+    JTextArea messages = new JTextArea(10,50);
 
     JPanel right = new JPanel();
 
 //    记录当前在线客户
-    DefaultListModel<User> model = new DefaultListModel<>();
-    JList<User> userList = new JList<>(model);
+    DefaultListModel<String> model = new DefaultListModel<>();
+    JList<String> userList = new JList<>(model);
 
     JPanel bottom = new JPanel();
     JTextArea input = new JTextArea(3, 50);
     JButton send = new JButton("发送");
 
-    void getUser(String name, Integer port) {
-        User user = new User(name, port);
-        model.addElement(user);
+    class Client1 implements Runnable{
+        Socket socket;
+        DataInputStream in;
+        DataOutputStream out;
+
+        public Client1(Socket socket) throws IOException {
+            this.socket = socket;
+            in = new DataInputStream(socket.getInputStream());
+            out = new DataOutputStream(socket.getOutputStream());
+        }
+        @Override
+        public void run() {
+            while (true){
+                String message;
+                try {
+                    message = in.readUTF();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                messages.append(message);
+                window.revalidate();
+                window.repaint();
+            }
+        }
+    }
+
+    void getUser(String name) {
+        model.addElement(name);
         messages.add(new JTextArea(10, 50));
     }
 
@@ -53,38 +76,63 @@ public class Client {
         header.setLayout(new FlowLayout());
         header.add(new JLabel("name:"));
         header.add(name);
-        header.add(new JLabel("port:"));
         login.addActionListener(e -> {
+            if (socket != null){
+                JDialog dialog = new JDialog(window,"错误");
+                dialog.setBounds(200,200,300,300);
+                dialog.add(new JLabel("请勿重复登录！！"));
+                dialog.setVisible(true);
+                return;
+            }
             //点击登陆按钮事件
             try {
-                socket = new Socket("127.0.0.1", 8080);
+                socket = new Socket("127.0.0.1", 9090);
             } catch (Exception ex) {
                 JDialog dialog = new JDialog(window,"报错");
                 dialog.setBounds(200,200,300,300);
                 dialog.add(new JLabel("连接失败！！"));
                 dialog.setVisible(true);
             }
+            OutputStream os = null;
+            try {
+                os = socket.getOutputStream();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            DataOutputStream dos = new DataOutputStream(os);
+            try {
+                dos.writeUTF(name.getText());
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            JDialog dialog = new JDialog(window,"成功");
+            dialog.setBounds(200,200,300,300);
+            dialog.add(new JLabel("连接成功！！"));
+            dialog.setVisible(true);
+            Client1 client1 = null;
+            try {
+                client1 = new Client1(socket);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            new Thread(client1).start();
         });
         header.add(login);
         window.add(header, BorderLayout.NORTH);
 
         // 中心布局
-        center.add(messages.get(index));
+        center.add(messages);
         window.add(center, BorderLayout.CENTER);
-
-        // 右侧布局
-        for (int i = 1; i <= 100; i++) {
-            getUser("user" + i, i);
-        }
-        right.setPreferredSize(new Dimension(50, 90));
-        right.add(userList);
-        window.add(right, BorderLayout.EAST);
 
         // 底部布局
         // 上传信息
         send.addActionListener(e -> {
-            String prefix = "You " + " :";
-            messages.get(index).append(prefix + input.getText() + "\n");
+            try {
+                DataOutputStream dos =  new DataOutputStream(socket.getOutputStream());
+                dos.writeUTF(input.getText() + "\n");
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
             input.setText("");
         });
         bottom.setLayout(new FlowLayout());
