@@ -52,6 +52,15 @@ public class Server {
                 }catch (SocketException | EOFException e){
                     //断开连接
                     clients.remove(this);
+                    for (ClientHandler client : clients){
+                        message = name + "离开聊天室了";
+                        try {
+                            client.out.writeUTF(message);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                    update();
                     return;
                 }
                 catch (IOException e) {

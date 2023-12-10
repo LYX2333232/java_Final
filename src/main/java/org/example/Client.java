@@ -15,7 +15,7 @@ public class Client {
     JFrame window = new JFrame("客户端");
 
     JPanel header = new JPanel();
-    JTextField name = new JTextField("123");
+    JTextField name = new JTextField("");
     JButton login = new JButton("登陆");
 
     JPanel center = new JPanel();
