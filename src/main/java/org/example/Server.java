@@ -53,7 +53,7 @@ public class Server {
                     //断开连接
                     clients.remove(this);
                     for (ClientHandler client : clients){
-                        message = name + "离开聊天室了";
+                        message = name + "离开聊天室了\n";
                         try {
                             client.out.writeUTF(message);
                         } catch (IOException ex) {
