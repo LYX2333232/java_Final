@@ -21,12 +21,6 @@ public class Client {
     JPanel center = new JPanel();
     JTextArea messages = new JTextArea(10,50);
 
-    JPanel right = new JPanel();
-
-//    记录当前在线客户
-    DefaultListModel<String> model = new DefaultListModel<>();
-    JList<String> userList = new JList<>(model);
-
     JPanel bottom = new JPanel();
     JTextArea input = new JTextArea(3, 50);
     JButton send = new JButton("发送");
@@ -55,11 +49,6 @@ public class Client {
                 window.repaint();
             }
         }
-    }
-
-    void getUser(String name) {
-        model.addElement(name);
-        messages.add(new JTextArea(10, 50));
     }
 
     void init() {
@@ -93,7 +82,7 @@ public class Client {
                 dialog.add(new JLabel("连接失败！！"));
                 dialog.setVisible(true);
             }
-            OutputStream os = null;
+            OutputStream os;
             try {
                 os = socket.getOutputStream();
             } catch (IOException ex) {
@@ -109,7 +98,7 @@ public class Client {
             dialog.setBounds(200,200,300,300);
             dialog.add(new JLabel("连接成功！！"));
             dialog.setVisible(true);
-            Client1 client1 = null;
+            Client1 client1;
             try {
                 client1 = new Client1(socket);
             } catch (IOException ex) {

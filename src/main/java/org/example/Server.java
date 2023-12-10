@@ -44,8 +44,8 @@ public class Server {
         @Override
         public void run() {
             while (true) {
-                String message = "";
-                String output = "";
+                String message;
+                String output;
                 try {
                     message = in.readUTF();
                     System.out.println(message);
